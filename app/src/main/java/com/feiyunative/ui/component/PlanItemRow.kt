@@ -14,12 +14,10 @@ import com.feiyunative.service.FocusTimerService
 
 @Composable
 fun PlanItemRow(
-    item: PlanItemEntity
+    item: PlanItemEntity,
+    isRunning: Boolean
 ) {
     val context = LocalContext.current
-
-    // ⚠️ 当前是否正在计时（简单方案，后续可升级为 Flow）
-    val isRunning = FocusTimerService.currentItemId == item.id
 
     Row(
         modifier = Modifier
@@ -53,9 +51,14 @@ fun PlanItemRow(
                         FocusTimerService.ACTION_START
                     }
                 }
-                // ✅ Android 8+ safer: always start as foreground-capable
-                // (service itself will call startForeground immediately)
-                ContextCompat.startForegroundService(context, intent)
+
+                if (isRunning) {
+                    // STOP：普通 service 调用
+                    context.startService(intent)
+                } else {
+                    // START：前台 service
+                    ContextCompat.startForegroundService(context, intent)
+                }
             }
         ) {
             Text(if (isRunning) "停止" else "开始")

@@ -26,6 +26,13 @@ interface PlanItemDao {
     suspend fun setCompleted(id: String, completed: Int?)
 
     @Query("""
+    UPDATE plan_item
+    SET title = :title
+    WHERE id = :id
+""")
+    suspend fun renameTitle(id: String, title: String)
+
+    @Query("""
         SELECT COUNT(*) FROM plan_item
         WHERE sectionId = :sectionId
     """)

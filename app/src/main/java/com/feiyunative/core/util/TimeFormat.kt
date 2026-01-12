@@ -10,14 +10,18 @@ fun formatDateTime(millis: Long): String {
     return dateFormat.format(Date(millis))
 }
 
-fun formatDuration(millis: Long): String {
-    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(millis)
-    val h = totalSeconds / 3600
-    val m = (totalSeconds % 3600) / 60
-    val s = totalSeconds % 60
+/**
+ * 将毫秒转换为 HH:mm:ss
+ *
+ * 例：
+ *  - 3_726_000 → 01:02:06
+ *  - 65_000    → 00:01:05
+ */
+fun formatDurationHms(durationMillis: Long): String {
+    val totalSeconds = durationMillis / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
 
-    return when {
-        h > 0 -> String.format("%d:%02d:%02d", h, m, s)
-        else -> String.format("%02d:%02d", m, s)
-    }
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }

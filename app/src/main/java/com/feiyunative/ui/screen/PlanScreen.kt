@@ -10,6 +10,12 @@ import com.feiyunative.ui.component.SectionCard
 import com.feiyunative.ui.vm.PlanViewModel
 import android.util.Log
 import com.feiyunative.ui.component.PlanItemRow
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+
 
 
 @Composable
@@ -25,7 +31,19 @@ fun PlanScreen(
     var showAddSectionForPlanId by remember { mutableStateOf<String?>(null) }
     var showAddItemForSectionId by remember { mutableStateOf<String?>(null) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    var editingSection by remember { mutableStateOf<com.feiyunative.data.entity.PlanSectionEntity?>(null) }
+    var editingItem by remember { mutableStateOf<com.feiyunative.data.entity.PlanItemEntity?>(null) }
+
+    val isFocusRunning by vm.isFocusRunning.collectAsState()
+    val runningItemId by vm.runningItemId.collectAsState()
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .statusBarsPadding()
+    ) {
 
         // ---------- 顶部操作（MVP：新 Plan / 新 Section） ----------
         Row(
@@ -108,13 +126,20 @@ fun PlanScreen(
                 onToggle = { vm.toggleSection(section) }
             ) {
                 itemsBySection[section.id].orEmpty().forEach { item ->
-                    PlanItemRow(item = item)
+                    PlanItemRow(
+                        item = item,
+                        isRunning = runningItemId == item.id
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 4.dp),
                         horizontalArrangement = Arrangement.End
                     ) {
+                        TextButton(onClick = { editingItem = item }) {
+                            Text("重命名")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
                         TextButton(onClick = { vm.deleteItem(item) }) {
                             Text("删除")
                         }
@@ -143,12 +168,19 @@ fun PlanScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
+                    TextButton(onClick = { editingSection = section }) {
+                        Text("重命名")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     TextButton(onClick = { vm.deleteSection(section) }) {
                         Text("删除 Section")
                     }
                 }
             }
         }
+
+        // ✅ Bottom padding（与 Timeline 对齐）
+        Spacer(modifier = Modifier.height(120.dp))
     }
 
     // ---------- Dialog：新 Plan ----------
@@ -177,6 +209,20 @@ fun PlanScreen(
         )
     }
 
+    // ---------- Dialog：重命名 Section ----------
+    editingSection?.let { section ->
+        SimpleTextInputDialog(
+            title = "重命名 Section",
+            hint = "Section 名称",
+            initialText = section.title,
+            onConfirm = {
+                vm.renameSection(section, it)
+                editingSection = null
+            },
+            onDismiss = { editingSection = null }
+        )
+    }
+
     // ---------- Dialog：新 Item ----------
     showAddItemForSectionId?.let { sectionId ->
         SimpleTextInputDialog(
@@ -189,16 +235,32 @@ fun PlanScreen(
             onDismiss = { showAddItemForSectionId = null }
         )
     }
+
+    // ---------- Dialog：重命名 Item ----------
+    editingItem?.let { item ->
+        SimpleTextInputDialog(
+            title = "重命名 Item",
+            hint = "Item 名称",
+            initialText = item.title,
+            onConfirm = {
+                vm.renameItem(item, it)
+                editingItem = null
+            },
+            onDismiss = { editingItem = null }
+        )
+    }
+
 }
 
 @Composable
 private fun SimpleTextInputDialog(
     title: String,
     hint: String,
+    initialText: String = "",
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialText) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

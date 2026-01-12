@@ -13,4 +13,6 @@ sealed class BottomNavItem(
         route = "timeline",
         label = "Timeline"
     )
+
+    object Settings : BottomNavItem("settings", "Settings")
 }

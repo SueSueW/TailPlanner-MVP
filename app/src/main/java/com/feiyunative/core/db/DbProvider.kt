@@ -17,4 +17,8 @@ object DbProvider {
             ).build().also { INSTANCE = it }
         }
     }
+    fun close() {
+        INSTANCE?.close()
+        INSTANCE = null
+    }
 }

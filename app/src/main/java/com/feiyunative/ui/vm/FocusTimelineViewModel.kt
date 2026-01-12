@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
+import com.feiyunative.data.entity.FocusSessionWithNames
+
 
 class FocusTimelineViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -33,17 +35,18 @@ class FocusTimelineViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** 当前日期的 Session 列表 */
-    val sessions: StateFlow<List<FocusSessionEntity>> =
+    val sessions: StateFlow<List<FocusSessionWithNames>> =
         selectedDate
             .flatMapLatest { date ->
                 val (from, to) = dayRange(date)
-                sessionDao.observeBetween(from, to)
+                sessionDao.observeBetweenWithNames(from, to)
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
+
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date

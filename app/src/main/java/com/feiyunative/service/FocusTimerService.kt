@@ -2,9 +2,13 @@ package com.feiyunative.service
 
 import android.app.*
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.feiyunative.R
 import com.feiyunative.core.db.DbProvider
 import com.feiyunative.core.util.newId
@@ -42,6 +46,20 @@ class FocusTimerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
+        // Android 13+：如果没有通知权限，前台服务无法展示通知。
+        // Android 14 上这会导致 startForeground 直接抛 ForegroundServiceStartNotAllowedException。
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!granted) {
+                stopSelf()
+                return START_NOT_STICKY
+            }
+        }
+
         when (intent?.action) {
 
             ACTION_START -> {
@@ -76,10 +94,16 @@ class FocusTimerService : Service() {
                     )
                 }
 
-                startForeground(
-                    NOTIFICATION_ID,
-                    buildNotification("专注中")
-                )
+                val notification = buildNotification("专注中")
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        notification,
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    )
+                } else {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
             }
 
             ACTION_STOP -> {

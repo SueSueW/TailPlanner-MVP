@@ -6,6 +6,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.feiyunative.data.entity.FocusSessionEntity
 import kotlinx.coroutines.flow.Flow
+import com.feiyunative.data.entity.FocusSessionWithNames
+
 
 @Dao
 interface FocusSessionDao {
@@ -39,13 +41,13 @@ interface FocusSessionDao {
     @Query("""
         SELECT * FROM focus_session
         WHERE planItemId = :planItemId
-        ORDER BY startAt DESC
+        ORDER BY startAt ASC
     """)
     fun observeByItem(planItemId: String): Flow<List<FocusSessionEntity>>
 
     @Query("""
         SELECT * FROM focus_session
-        ORDER BY startAt DESC
+        ORDER BY startAt ASC
         LIMIT :limit
     """)
     fun observeLatest(limit: Int = 200): Flow<List<FocusSessionEntity>>
@@ -53,9 +55,28 @@ interface FocusSessionDao {
     @Query("""
         SELECT * FROM focus_session
         WHERE startAt BETWEEN :from AND :to
-        ORDER BY startAt DESC
+        ORDER BY startAt ASC
     """)
     fun observeBetween(from: Long, to: Long): Flow<List<FocusSessionEntity>>
+
+    /**
+     * Timeline 展示用（带 Section / Item 标题）
+     * focus_session -> plan_item -> plan_section
+     */
+    @Query(
+        """
+    SELECT fs.*,
+           ps.title AS sectionTitle,
+           pi.title AS itemTitle
+    FROM focus_session AS fs
+    JOIN plan_item AS pi ON pi.id = fs.planItemId
+    JOIN plan_section AS ps ON ps.id = pi.sectionId
+    WHERE fs.startAt BETWEEN :from AND :to
+    ORDER BY fs.startAt ASC
+    """
+    )
+    fun observeBetweenWithNames(from: Long, to: Long): Flow<List<FocusSessionWithNames>>
+
 
     @Query("""
         SELECT planItemId, SUM(durationMillis) as totalMillis
@@ -74,6 +95,22 @@ interface FocusSessionDao {
         WHERE startAt BETWEEN :from AND :to
     """)
     suspend fun sumDurationBetween(from: Long, to: Long): Long?
+
+    @Query("""
+    SELECT COUNT(*) > 0
+    FROM focus_session
+    WHERE endAt IS NULL OR endAt = startAt
+""")
+    fun observeIsRunning(): Flow<Boolean>
+
+    @Query("""
+    SELECT planItemId
+    FROM focus_session
+    WHERE endAt IS NULL OR endAt = startAt
+    LIMIT 1
+""")
+    fun observeRunningItemId(): Flow<String?>
+
 }
 
 data class ItemDurationSum(

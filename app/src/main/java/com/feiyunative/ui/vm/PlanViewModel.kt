@@ -87,6 +87,24 @@ class PlanViewModel(app: Application) : AndroidViewModel(app) {
                 emptyMap()
             )
 
+    private val focusSessionDao = db.focusSessionDao()
+
+    val isFocusRunning: StateFlow<Boolean> =
+        focusSessionDao.observeIsRunning()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = false
+            )
+
+    val runningItemId: StateFlow<String?> =
+        focusSessionDao.observeRunningItemId()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = null
+            )
+
 
     fun selectPlan(id: String) {
         _currentPlanId.value = id
@@ -166,6 +184,19 @@ class PlanViewModel(app: Application) : AndroidViewModel(app) {
             repo.toggleItemDone(item.id, !item.done)
         }
     }
+
+    fun renameSection(section: PlanSectionEntity, newTitle: String) {
+        viewModelScope.launch {
+            repo.renameSectionTitle(section.id, newTitle)
+        }
+    }
+
+    fun renameItem(item: PlanItemEntity, newTitle: String) {
+        viewModelScope.launch {
+            repo.renameItemTitle(item.id, newTitle)
+        }
+    }
+
 
     fun ensureDefaultSectionAndItems(planId: String) {
         viewModelScope.launch {

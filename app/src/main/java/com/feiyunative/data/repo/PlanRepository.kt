@@ -35,6 +35,9 @@ class PlanRepository(
     suspend fun setSectionCollapsed(id: String, collapsed: Boolean) =
         sectionDao.setCollapsed(id, collapsed)
 
+    suspend fun renameSectionTitle(id: String, title: String) =
+        sectionDao.renameTitle(id, title)
+
     /**
      * ⭐ 保证一个 Plan 至少有一个 Section
      */
@@ -63,6 +66,9 @@ class PlanRepository(
 
     suspend fun toggleItemDone(id: String, done: Boolean) =
         itemDao.setDone(id, done)
+
+    suspend fun renameItemTitle(id: String, title: String) =
+        itemDao.renameTitle(id, title)
 
     /**
      * ⭐ 保证一个 Section 至少有一个 Item

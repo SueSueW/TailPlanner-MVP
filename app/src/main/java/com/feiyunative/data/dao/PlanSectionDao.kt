@@ -24,6 +24,14 @@ interface PlanSectionDao {
     """)
     suspend fun setCollapsed(id: String, collapsed: Boolean)
 
+    @Query("""
+    UPDATE plan_section
+    SET title = :title
+    WHERE id = :id
+""")
+    suspend fun renameTitle(id: String, title: String)
+
+
     // ⭐ 关键补齐：Repository 依赖的方法
     @Query("""
         SELECT * FROM plan_section
