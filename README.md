@@ -58,3 +58,28 @@ The production-grade application, long-term roadmap, and ongoing development are
 
 > **TailPlanner** (formal product repository)
 
+---
+
+## Related Documentation
+
+For a detailed summary of the native MVP validation work that informed this repository, see:
+
+- [`docs/FEIYUNATIVE_SUMMARY.md`](docs/FEIYUNATIVE_SUMMARY.md)
+
+This document outlines the scope, technical constraints, and key learnings from the FeiyuNative MVP project, which serves as a feasibility and architectural reference for TailPlanner.
+
+---
+
+## Project Status
+
+This repository represents a **frozen MVP validation stage**.
+
+The core goals of this project have been fulfilled:
+- Execution flow feasibility has been validated
+- Data model and persistence strategy are proven
+- Timeline-centric design assumptions are confirmed in real usage
+
+No new features will be added to this repository.
+
+Further development continues in the **TailPlanner** repository, which focuses on long-term architecture and iterative expansion.
+https://github.com/SueSueW/TailPlanner
